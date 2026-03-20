@@ -53,6 +53,8 @@ const BudgetModule = ({ patientId, patientName }) => {
     const [showBillingModal, setShowBillingModal] = useState(false);
     const [billingForm, setBillingForm] = useState(null);
     const [activePaymentTab, setActivePaymentTab] = useState('EFECTIVO');
+    const [isSaving, setIsSaving] = useState(false);
+    const [isRegisteringPayment, setIsRegisteringPayment] = useState(false);
     const [showPaymentForm, setShowPaymentForm] = useState(false);
     const { patient } = usePatientStore();
 
@@ -91,26 +93,36 @@ const BudgetModule = ({ patientId, patientName }) => {
 
     const handleSaveBudget = async () => {
         if (createForm.items.length === 0) return alert('Agregue al menos un servicio');
-        const res = await createBudget(patientId, createForm.doctorId, createForm.items);
-        if (res) {
-            setShowCreateModal(false);
-            setCreateForm({ name: '', doctorId: user?.id || '', items: [], notesPatient: '', notesInternal: '', discount: 0 });
-            fetchBudgets(patientId);
+        setIsSaving(true);
+        try {
+            const res = await createBudget(patientId, createForm.doctorId, createForm.items);
+            if (res) {
+                setShowCreateModal(false);
+                setCreateForm({ name: '', doctorId: user?.id || '', items: [], notesPatient: '', notesInternal: '', discount: 0 });
+                fetchBudgets(patientId);
+            }
+        } finally {
+            setIsSaving(false);
         }
     };
 
     const handleRegisterPayment = async (budgetId) => {
         if (!paymentForm.amount || parseFloat(paymentForm.amount) <= 0) return alert('Monto inválido');
-        const res = await registerPayment({
-            amount: parseFloat(paymentForm.amount),
-            method: paymentForm.method,
-            treatmentPlanId: budgetId,
-            patientId
-        });
-        if (res) {
-            setPaymentForm({ budgetId: null, amount: '', method: 'CASH' });
-            fetchBudgets(patientId);
-            alert('Pago registrado');
+        setIsRegisteringPayment(true);
+        try {
+            const res = await registerPayment({
+                amount: parseFloat(paymentForm.amount),
+                method: paymentForm.method,
+                treatmentPlanId: budgetId,
+                patientId
+            });
+            if (res) {
+                setPaymentForm({ budgetId: null, amount: '', method: 'CASH' });
+                fetchBudgets(patientId);
+                alert('Pago registrado');
+            }
+        } finally {
+            setIsRegisteringPayment(false);
         }
     };
 
@@ -445,7 +457,20 @@ const BudgetModule = ({ patientId, patientName }) => {
                                 </div>
                             </div>
                         </div>
-                        <div className="px-10 py-8 bg-slate-50 flex justify-end gap-4"><button onClick={() => setShowCreateModal(false)} className="px-6 py-2 text-[11px] font-black uppercase text-slate-400 hover:text-slate-600">Cancelar</button><button onClick={handleSaveBudget} className="px-8 py-3 bg-indigo-600 text-white rounded-2xl text-[11px] font-black uppercase tracking-widest shadow-xl shadow-indigo-100 hover:bg-indigo-700 transition-all flex items-center gap-2"><Save size={18} /> Guardar</button></div>
+                        <div className="px-10 py-8 bg-slate-50 flex justify-end gap-4">
+                            <button disabled={isSaving} onClick={() => setShowCreateModal(false)} className="px-6 py-2 text-[11px] font-black uppercase text-slate-400 hover:text-slate-600 disabled:opacity-30">Cancelar</button>
+                            <button 
+                                onClick={handleSaveBudget} 
+                                disabled={isSaving}
+                                className="px-8 py-3 bg-indigo-600 text-white rounded-2xl text-[11px] font-black uppercase tracking-widest shadow-xl shadow-indigo-100 hover:bg-indigo-700 transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                {isSaving ? (
+                                    <><span className="animate-spin inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full" /> Guardando...</>
+                                ) : (
+                                    <><Save size={18} /> Guardar</>
+                                )}
+                            </button>
+                        </div>
                     </motion.div>
                 </div>
             )}
@@ -609,7 +634,15 @@ const BudgetModule = ({ patientId, patientName }) => {
                                                         <div className="flex-1 space-y-1"><label className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Monto</label><input type="number" className="premium-input text-sm" value={paymentForm.budgetId === budget.id ? paymentForm.amount : ''} onChange={e => setPaymentForm({ ...paymentForm, budgetId: budget.id, amount: e.target.value })} placeholder="0.00" /></div>
                                                         <div className="flex-1 space-y-1"><label className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Método</label><select className="premium-input text-sm" value={paymentForm.budgetId === budget.id ? paymentForm.method : 'CASH'} onChange={e => setPaymentForm({ ...paymentForm, budgetId: budget.id, method: e.target.value })}><option value="CASH">Efectivo</option><option value="CARD">Tarjeta</option><option value="TRANSFER">Transf.</option></select></div>
                                                     </div>
-                                                    <button onClick={() => handleRegisterPayment(budget.id)} className="w-full py-4 bg-emerald-500 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-emerald-50 hover:bg-emerald-600 transition-all">Registrar Abono</button>
+                                                    <button 
+                                                        onClick={() => handleRegisterPayment(budget.id)} 
+                                                        disabled={isRegisteringPayment}
+                                                        className="w-full py-4 bg-emerald-500 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-emerald-50 hover:bg-emerald-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                                                    >
+                                                        {isRegisteringPayment ? (
+                                                            <><span className="animate-spin inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full" /> Registrando...</>
+                                                        ) : 'Registrar Abono'}
+                                                    </button>
                                                 </div>
                                             </div>
                                             <div className="space-y-4">
