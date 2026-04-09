@@ -24,6 +24,11 @@ const PatientRegistrationModal = ({ isOpen, onClose, onSave, editData = null }) 
         email: '',
         birthDate: '',
         gender: 'Hombre',
+        occupation: '',
+        birthCountry: 'Perú',
+        department: '',
+        province: '',
+        district: '',
         leadSource: '',
         insurance: '',
         tags: []
@@ -63,6 +68,11 @@ const PatientRegistrationModal = ({ isOpen, onClose, onSave, editData = null }) 
                 email: editData.email || '',
                 birthDate: editData.birthDate ? new Date(editData.birthDate).toISOString().split('T')[0] : '',
                 gender: editData.gender || 'Hombre',
+                occupation: editData.occupation || '',
+                birthCountry: editData.birthCountry || 'Perú',
+                department: editData.department || '',
+                province: editData.province || '',
+                district: editData.district || '',
                 leadSource: editData.leadSource || '',
                 insurance: editData.insurance || '',
                 tags: typeof editData.tags === 'string' ? editData.tags.split(',').filter(Boolean) : (Array.isArray(editData.tags) ? editData.tags : [])
@@ -96,6 +106,11 @@ const PatientRegistrationModal = ({ isOpen, onClose, onSave, editData = null }) 
                 email: '',
                 birthDate: '',
                 gender: 'Hombre',
+                occupation: '',
+                birthCountry: 'Perú',
+                department: '',
+                province: '',
+                district: '',
                 leadSource: '',
                 insurance: '',
                 tags: []
@@ -431,6 +446,52 @@ const PatientRegistrationModal = ({ isOpen, onClose, onSave, editData = null }) 
                                                             <option>Otro</option>
                                                         </select>
                                                         <ChevronDown size={14} className="absolute right-4 top-1/2 -translate-y-1/2 text-[#00aeb5] pointer-events-none" />
+                                                    </div>
+                                                </div>
+
+                                                <div className="grid grid-cols-[100px_1fr] items-center gap-3">
+                                                    <label className="text-[12px] text-slate-500 font-bold">Ocupación</label>
+                                                    <input
+                                                        placeholder="Ej: Odontólogo, Estudiante..."
+                                                        value={formData.occupation}
+                                                        onChange={e => setFormData({ ...formData, occupation: e.target.value })}
+                                                        className="w-full bg-white border border-slate-200 rounded-lg px-3 py-1.5 text-[14px] text-slate-700 font-medium outline-none focus:border-[#00aeb5] transition-all h-[36px]"
+                                                    />
+                                                </div>
+
+                                                <div className="grid grid-cols-[100px_1fr] items-center gap-3">
+                                                    <label className="text-[12px] text-slate-500 font-bold">Residencia</label>
+                                                    <div className="flex gap-2">
+                                                        <select
+                                                            value={formData.department}
+                                                            onChange={e => setFormData({ ...formData, department: e.target.value, province: '', district: '' })}
+                                                            className="flex-1 bg-white border border-slate-200 rounded-lg px-2 py-1.5 text-[12px] text-slate-700 font-medium outline-none focus:border-[#00aeb5] appearance-none cursor-pointer h-[36px]"
+                                                        >
+                                                            <option value="">Dep.</option>
+                                                            <option>LIMA</option>
+                                                            <option>AREQUIPA</option>
+                                                            <option>LA LIBERTAD</option>
+                                                        </select>
+                                                        <select
+                                                            value={formData.province}
+                                                            onChange={e => setFormData({ ...formData, province: e.target.value, district: '' })}
+                                                            className="flex-1 bg-white border border-slate-200 rounded-lg px-2 py-1.5 text-[12px] text-slate-700 font-medium outline-none focus:border-[#00aeb5] appearance-none cursor-pointer h-[36px]"
+                                                        >
+                                                            <option value="">Prov.</option>
+                                                            {formData.department === 'LIMA' && <option>LIMA</option>}
+                                                            {formData.department === 'AREQUIPA' && <option>AREQUIPA</option>}
+                                                            {formData.department === 'LA LIBERTAD' && <option>TRUJILLO</option>}
+                                                        </select>
+                                                        <select
+                                                            value={formData.district}
+                                                            onChange={e => setFormData({ ...formData, district: e.target.value })}
+                                                            className="flex-1 bg-white border border-slate-200 rounded-lg px-2 py-1.5 text-[12px] text-slate-700 font-medium outline-none focus:border-[#00aeb5] appearance-none cursor-pointer h-[36px]"
+                                                        >
+                                                            <option value="">Dist.</option>
+                                                            {formData.province === 'LIMA' && <><option>MIRAFLORES</option><option>SURCO</option><option>SAN ISIDRO</option></>}
+                                                            {formData.province === 'AREQUIPA' && <><option>AREQUIPA</option><option>YANAHUARA</option></>}
+                                                            {formData.province === 'TRUJILLO' && <><option>TRUJILLO</option><option>VICTOR LARCO</option></>}
+                                                        </select>
                                                     </div>
                                                 </div>
 

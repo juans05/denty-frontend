@@ -53,6 +53,11 @@ const Patients = () => {
         age: 0,
         gender: 'SIN ESPECIFICAR',
         civilStatus: 'SIN ESPECIFICAR',
+        occupation: '',
+        birthCountry: 'Perú',
+        department: '',
+        province: '',
+        district: '',
         phoneMobile: '',
         phoneHome: '',
         email: '',
@@ -413,11 +418,13 @@ const Patients = () => {
                 onSave={async (data) => {
                     try {
                         const lastName = `${data.paternalSurname || ''} ${data.maternalSurname || ''}`.trim();
+                        const ubigeoAddress = [data.department, data.province, data.district].filter(Boolean).join(' / ');
 
                         // Map complex types to backend schema
                         const payload = {
                             ...data,
                             lastName: lastName || 'Paciente',
+                            ubigeoAddress: ubigeoAddress || data.ubigeoAddress,
                             tags: Array.isArray(data.tags) ? data.tags.join(',') : data.tags,
                             // Ensure birthDate is a valid date string or null if empty
                             birthDate: data.birthDate || new Date().toISOString().split('T')[0],

@@ -13,6 +13,9 @@ import Register from './pages/auth/Register';
 import Finance from './pages/finance/Finance';
 import { ErrorBoundary } from 'react-error-boundary';
 import { Loader2, AlertCircle, RefreshCw } from 'lucide-react';
+import { PatientAuthProvider, usePatientAuth } from './context/PatientAuthContext';
+import PatientLogin from './pages/patient-portal/PatientLogin';
+import PatientPortal from './pages/patient-portal/PatientPortal';
 
 const GlobalErrorFallback = ({ error, resetErrorBoundary }) => {
   const handleReset = () => {
@@ -78,24 +81,44 @@ const ProtectedRoute = ({ children }) => {
   return <MainLayout>{children}</MainLayout>;
 };
 
+const PatientProtectedRoute = ({ children }) => {
+  const { patient, loading } = usePatientAuth();
+  if (loading) return (
+    <div className="h-screen flex items-center justify-center bg-slate-50 relative overflow-hidden">
+      <div className="absolute inset-0 bg-gradient-to-tr from-cyan-100/20 to-transparent"></div>
+      <Loader2 className="animate-spin text-cyan-600 w-10 h-10 relative z-10" />
+    </div>
+  );
+  if (!patient) return <Navigate to="/portal/login" replace />;
+  return children;
+};
+
 function App() {
   return (
     <ErrorBoundary FallbackComponent={GlobalErrorFallback}>
       <Router>
         <AuthProvider>
-          <Routes>
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
-            <Route path="/setup" element={<OnboardingWizard />} />
-            <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-            <Route path="/patients" element={<ProtectedRoute><Patients /></ProtectedRoute>} />
-            <Route path="/expediente/:id/:module?" element={<ProtectedRoute><PatientProfileView /></ProtectedRoute>} />
-            <Route path="/agenda" element={<ProtectedRoute><Agenda /></ProtectedRoute>} />
-            <Route path="/history" element={<ProtectedRoute><History /></ProtectedRoute>} />
-            <Route path="/finance" element={<ProtectedRoute><Finance /></ProtectedRoute>} />
-            <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
-            <Route path="/" element={<Navigate to="/dashboard" replace />} />
-          </Routes>
+          <PatientAuthProvider>
+            <Routes>
+              {/* Staff Routes */}
+              <Route path="/login" element={<Login />} />
+              <Route path="/register" element={<Register />} />
+              <Route path="/setup" element={<OnboardingWizard />} />
+              <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+              <Route path="/patients" element={<ProtectedRoute><Patients /></ProtectedRoute>} />
+              <Route path="/expediente/:id/:module?" element={<ProtectedRoute><PatientProfileView /></ProtectedRoute>} />
+              <Route path="/agenda" element={<ProtectedRoute><Agenda /></ProtectedRoute>} />
+              <Route path="/history" element={<ProtectedRoute><History /></ProtectedRoute>} />
+              <Route path="/finance" element={<ProtectedRoute><Finance /></ProtectedRoute>} />
+              <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+
+              {/* Patient Portal Routes */}
+              <Route path="/portal/login" element={<PatientLogin />} />
+              <Route path="/portal" element={<PatientProtectedRoute><PatientPortal /></PatientProtectedRoute>} />
+
+              <Route path="/" element={<Navigate to="/dashboard" replace />} />
+            </Routes>
+          </PatientAuthProvider>
         </AuthProvider>
       </Router>
     </ErrorBoundary>

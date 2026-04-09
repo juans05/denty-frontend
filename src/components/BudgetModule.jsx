@@ -212,9 +212,9 @@ const BudgetModule = ({ patientId, patientName }) => {
             budget,
             type,
             razonSocial: patient?.firstName ? `${patient.firstName} ${patient.lastName || ''}`.trim() : '',
-            tipoDocumento: patient?.documentType || 'DNI',
+            tipoDocumento: (type === 'FACTURA' ? 'RUC' : patient?.documentType) || 'DNI',
             nroDocumento: patient?.documentId || '',
-            direccionCliente: patient?.address || '',
+            direccionCliente: [patient?.address, patient?.ubigeoAddress].filter(Boolean).join(', ') || '',
             email: patient?.email || '',
             items,
             itemIds: items.map(i => i.id),
@@ -316,6 +316,17 @@ const BudgetModule = ({ patientId, patientName }) => {
     const isPaymentReached = totalPaid >= (billingForm?.total || 0);
 
     const handleConfirmInvoice = async () => {
+        // Validaciones Sunat
+        if (billingForm.type === 'FACTURA' && (billingForm.nroDocumento?.length !== 11 || !['10', '20'].includes(billingForm.nroDocumento.substring(0, 2)))) {
+            return setInvoiceError('Para FACTURA el RUC debe tener 11 dígitos y empezar con 10 o 20.');
+        }
+        if (billingForm.type === 'BOLETA' && billingForm.tipoDocumento === 'DNI' && billingForm.nroDocumento?.length !== 8) {
+            return setInvoiceError('Para BOLETA el DNI debe tener 8 dígitos.');
+        }
+        if (!billingForm.razonSocial?.trim()) {
+            return setInvoiceError('Debe ingresar el Nombre o Razón Social del cliente.');
+        }
+
         setInvoiceLoading(true);
         setInvoiceError('');
         try {
