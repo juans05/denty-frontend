@@ -28,7 +28,11 @@ const Login = () => {
         const result = await login(email, password);
 
         if (result.success) {
-            navigate('/dashboard');
+            if (result.hasMultipleBranches) {
+                navigate('/select-branch');
+            } else {
+                navigate('/dashboard');
+            }
         } else {
             setError(result.message);
             setIsSubmitting(false);

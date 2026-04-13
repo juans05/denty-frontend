@@ -6,9 +6,9 @@ const AuthContext = createContext();
 
 export const useAuth = () => useContext(AuthContext);
 
-
 export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
+    const [activeBranch, setActiveBranch] = useState(null);
     const [loading, setLoading] = useState(true);
     const [sessionExpired, setSessionExpired] = useState(false);
 
@@ -17,14 +17,23 @@ export const AuthProvider = ({ children }) => {
             try {
                 const token = localStorage.getItem('token');
                 const storedUser = localStorage.getItem('user');
+                const storedBranch = localStorage.getItem('activeBranch');
 
                 if (token && storedUser) {
                     try {
-                        setUser(JSON.parse(storedUser));
+                        const parsedUser = JSON.parse(storedUser);
+                        setUser(parsedUser);
+                        
+                        if (storedBranch) {
+                            setActiveBranch(JSON.parse(storedBranch));
+                        } else if (parsedUser.availableBranches?.length === 1) {
+                            const singleBranch = parsedUser.availableBranches[0];
+                            setActiveBranch(singleBranch);
+                            localStorage.setItem('activeBranch', JSON.stringify(singleBranch));
+                        }
                     } catch (parseError) {
-                        console.error('Error parsing stored user:', parseError);
-                        localStorage.removeItem('user');
-                        localStorage.removeItem('token');
+                        console.error('Error parsing stored session data:', parseError);
+                        logout();
                     }
                 }
             } catch (error) {
@@ -40,6 +49,7 @@ export const AuthProvider = ({ children }) => {
     useEffect(() => {
         const handler = () => {
             setUser(null);
+            setActiveBranch(null);
             setSessionExpired(true);
         };
         window.addEventListener('auth:session-expired', handler);
@@ -54,13 +64,27 @@ export const AuthProvider = ({ children }) => {
     const login = async (email, password) => {
         try {
             const response = await api.post('auth/login', { email, password });
-            const { token, user } = response.data;
+            const { token, user: userData } = response.data;
 
             localStorage.setItem('token', token);
-            localStorage.setItem('user', JSON.stringify(user));
-            setUser(user);
+            localStorage.setItem('user', JSON.stringify(userData));
+            setUser(userData);
+            
+            // If only one branch, set it immediately
+            if (userData.availableBranches?.length === 1) {
+                const branch = userData.availableBranches[0];
+                setActiveBranch(branch);
+                localStorage.setItem('activeBranch', JSON.stringify(branch));
+            } else {
+                setActiveBranch(null);
+                localStorage.removeItem('activeBranch');
+            }
+
             setSessionExpired(false);
-            return { success: true };
+            return { 
+                success: true, 
+                hasMultipleBranches: (userData.availableBranches?.length || 0) > 1 
+            };
         } catch (error) {
             return {
                 success: false,
@@ -69,10 +93,18 @@ export const AuthProvider = ({ children }) => {
         }
     };
 
+    const switchBranch = (branch) => {
+        setActiveBranch(branch);
+        localStorage.setItem('activeBranch', JSON.stringify(branch));
+        // Optional: refresh if needed or just let components react to context change
+    };
+
     const logout = () => {
         localStorage.removeItem('token');
         localStorage.removeItem('user');
+        localStorage.removeItem('activeBranch');
         setUser(null);
+        setActiveBranch(null);
     };
 
     const completeSetup = () => {
@@ -83,14 +115,16 @@ export const AuthProvider = ({ children }) => {
 
     const hasPermission = useCallback((permissionKey) => {
         if (!user) return false;
-        if (user.role === 'ADMIN') return true; // Superadmin always has access
+        if (user.role === 'ADMIN') return true;
         return user.permissions?.includes(permissionKey);
     }, [user]);
 
     const value = {
         user,
+        activeBranch,
         login,
         logout,
+        switchBranch,
         completeSetup,
         hasPermission,
         loading

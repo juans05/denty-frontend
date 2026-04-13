@@ -23,6 +23,7 @@ import {
 } from 'lucide-react';
 import api from '../../services/api';
 import UsersView from './UsersView';
+import RolesView from './RolesView';
 import BranchesView from './components/BranchesView';
 import ServicesView from './components/ServicesView';
 import ConsultoriesView from './components/ConsultoriesView';
@@ -112,9 +113,10 @@ const Settings = () => {
     );
 
     const TABS = [
-        { id: 'PROFILE', icon: User, label: 'Mi Perfil' },
+        { id: ' Mi Perfil', icon: User, label: 'Mi Perfil' },
         { id: 'BRANCHES', icon: Building2, label: 'Sedes' },
-        { id: 'USERS', icon: Shield, label: 'Usuarios' },
+        { id: 'USERS', icon: User, label: 'Usuarios' },
+        { id: 'ROLES', icon: Shield, label: 'Perfiles y Permisos' },
         { id: 'SERVICES', icon: Stethoscope, label: 'Servicios' },
         { id: 'INVENTORY', icon: Package, label: 'Inventario' },
         { id: 'CONSULTORIES', icon: Activity, label: 'Consultorios' },
@@ -311,6 +313,10 @@ const Settings = () => {
                             profiles={profiles}
                             onRefresh={fetchInitialData}
                         />
+                    )}
+
+                    {activeTab === 'ROLES' && (
+                        <RolesView onRefresh={fetchInitialData} />
                     )}
 
                     {activeTab === 'SERVICES' && (

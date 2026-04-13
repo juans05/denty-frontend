@@ -27,7 +27,7 @@ const UsersView = ({ branches: propBranches, profiles: propProfiles, onRefresh }
         email: '',
         password: '',
         role: 'DENTIST',
-        branchId: '',
+        branchIds: [],
         profileId: ''
     });
 
@@ -75,7 +75,7 @@ const UsersView = ({ branches: propBranches, profiles: propProfiles, onRefresh }
                 email: user.email,
                 password: '', // Don't show password
                 role: user.role,
-                branchId: user.branchId || '',
+                branchIds: user.branches?.map(ub => ub.branchId) || [],
                 profileId: user.profileId || ''
             });
         } else {
@@ -85,7 +85,7 @@ const UsersView = ({ branches: propBranches, profiles: propProfiles, onRefresh }
                 email: '',
                 password: '',
                 role: 'DENTIST',
-                branchId: '',
+                branchIds: [],
                 profileId: ''
             });
         }
@@ -153,7 +153,7 @@ const UsersView = ({ branches: propBranches, profiles: propProfiles, onRefresh }
                             <th className="px-8 py-6">Usuario / Nombre</th>
                             <th className="px-8 py-6">Email / Acceso</th>
                             <th className="px-8 py-6">Perfil / Rol</th>
-                            <th className="px-8 py-6">Sede Principal</th>
+                            <th className="px-8 py-6">Sedes Asignadas</th>
                             <th className="px-8 py-6 text-right">Acciones</th>
                         </tr>
                     </thead>
@@ -178,9 +178,17 @@ const UsersView = ({ branches: propBranches, profiles: propProfiles, onRefresh }
                                         {u.profile?.name || u.role}
                                     </span>
                                 </td>
-                                <td className="px-8 py-6 font-bold text-slate-400 text-xs">
-                                    <div className="flex items-center gap-2">
-                                        <MapPin size={14} className="text-slate-300" /> {branches.find(b => b.id === u.branchId)?.name || 'Sin sede'}
+                                <td className="px-8 py-6 font-bold text-slate-400 text-xs text-wrap max-w-[200px]">
+                                    <div className="flex flex-wrap gap-1">
+                                        {u.branches?.length > 0 ? (
+                                            u.branches.map(ub => (
+                                                <span key={ub.branchId} className="px-2 py-0.5 bg-slate-100 rounded-md text-[9px] uppercase tracking-tighter">
+                                                    {ub.branch?.name}
+                                                </span>
+                                            ))
+                                        ) : (
+                                            <span className="text-rose-400 text-[10px]">Sin sedes asignadas</span>
+                                        )}
                                     </div>
                                 </td>
                                 <td className="px-8 py-6 text-right">
@@ -288,17 +296,32 @@ const UsersView = ({ branches: propBranches, profiles: propProfiles, onRefresh }
                                         {profiles.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
                                     </select>
                                 </div>
-                                <div className="space-y-2">
-                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Sede <span className="text-rose-500">*</span></label>
-                                    <select
-                                        required
-                                        value={formData.branchId}
-                                        onChange={e => setFormData({ ...formData, branchId: e.target.value })}
-                                        className="premium-input bg-slate-50/50"
-                                    >
-                                        <option value="">Seleccionar...</option>
-                                        {branches.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
-                                    </select>
+                                <div className="space-y-2 col-span-2">
+                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Sedes Asignadas <span className="text-rose-500">*</span></label>
+                                    <div className="grid grid-cols-2 gap-2 p-4 bg-slate-50/50 rounded-2xl border border-slate-200">
+                                        {branches.map(b => (
+                                            <label key={b.id} className="flex items-center gap-2 cursor-pointer group">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={formData.branchIds.includes(b.id)}
+                                                    onChange={e => {
+                                                        const checked = e.target.checked;
+                                                        setFormData(prev => ({
+                                                            ...prev,
+                                                            branchIds: checked 
+                                                                ? [...prev.branchIds, b.id] 
+                                                                : prev.branchIds.filter(id => id !== b.id)
+                                                        }));
+                                                    }}
+                                                    className="w-4 h-4 rounded border-slate-300 text-cyan-600 focus:ring-cyan-500"
+                                                />
+                                                <span className="text-xs font-bold text-slate-600 group-hover:text-slate-900 transition-colors uppercase tracking-tight">{b.name}</span>
+                                            </label>
+                                        ))}
+                                    </div>
+                                    {formData.branchIds.length === 0 && (
+                                        <p className="text-[9px] text-rose-500 font-bold ml-1">Debe seleccionar al menos una sede</p>
+                                    )}
                                 </div>
                             </div>
 

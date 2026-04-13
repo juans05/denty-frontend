@@ -28,6 +28,12 @@ const PRIMARY_LOWER_RIGHT = [85, 84, 83, 82, 81];
 const isWisdom = n => [18, 28, 38, 48].includes(n);
 const isUpper = n => (n >= 11 && n <= 28) || (n >= 51 && n <= 65);
 const isPrimary = n => n >= 51 && n <= 85;
+const isMolar = n => {
+    const pos = n % 10;
+    return n <= 48 ? [6, 7, 8].includes(pos) : [4, 5].includes(pos);
+};
+const isPremolar = n => n <= 48 && [4, 5].includes(n % 10);
+const isCanine = n => n % 10 === 3;
 
 const ALL_TEETH = [
     ...UPPER_RIGHT, ...UPPER_LEFT,

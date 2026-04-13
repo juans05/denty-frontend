@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useLocation } from 'react-router-dom';
 import Sidebar from './Sidebar';
+import Header from './Header';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
@@ -27,10 +28,11 @@ const MainLayout = ({ children }) => {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.4, ease: "easeOut" }}
                 className={cn(
-                    "flex-1 transition-all duration-300 ease-in-out overflow-x-hidden p-4 md:p-8 lg:p-10",
+                    "flex-1 transition-all duration-300 ease-in-out overflow-x-hidden p-4 md:p-6 lg:p-8",
                     isCollapsed ? "lg:ml-[80px]" : "lg:ml-[260px]"
                 )}
             >
+                <Header />
                 {children}
             </motion.main>
         </div>

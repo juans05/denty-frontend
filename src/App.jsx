@@ -10,6 +10,7 @@ import MainLayout from './components/layout/MainLayout';
 import PatientProfileView from './components/PatientProfileView';
 import OnboardingWizard from './pages/onboarding/OnboardingWizard';
 import Register from './pages/auth/Register';
+import BranchSelection from './pages/auth/BranchSelection';
 import Finance from './pages/finance/Finance';
 import { ErrorBoundary } from 'react-error-boundary';
 import { Loader2, AlertCircle, RefreshCw } from 'lucide-react';
@@ -68,16 +69,23 @@ const GlobalErrorFallback = ({ error, resetErrorBoundary }) => {
   );
 };
 
-const ProtectedRoute = ({ children }) => {
-  const { user, loading } = useAuth();
+const ProtectedRoute = ({ children, skipBranchCheck = false }) => {
+  const { user, loading, activeBranch } = useAuth();
+
   if (loading) return (
     <div className="h-screen flex items-center justify-center bg-slate-50 relative overflow-hidden">
       <div className="absolute inset-0 bg-gradient-to-tr from-cyan-100/20 to-transparent"></div>
       <Loader2 className="animate-spin text-cyan-600 w-10 h-10 relative z-10" />
     </div>
   );
+
   if (!user) return <Navigate to="/login" replace />;
   if (user.needsSetup) return <Navigate to="/setup" replace />;
+  
+  if (!activeBranch && !skipBranchCheck) {
+    return <Navigate to="/select-branch" replace />;
+  }
+
   return <MainLayout>{children}</MainLayout>;
 };
 
@@ -103,6 +111,11 @@ function App() {
               {/* Staff Routes */}
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
+              <Route path="/select-branch" element={
+                <ProtectedRoute skipBranchCheck>
+                  <BranchSelection />
+                </ProtectedRoute>
+              } />
               <Route path="/setup" element={<OnboardingWizard />} />
               <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
               <Route path="/patients" element={<ProtectedRoute><Patients /></ProtectedRoute>} />
