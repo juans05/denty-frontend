@@ -14,6 +14,20 @@ api.interceptors.request.use(
         if (token) {
             config.headers.Authorization = `Bearer ${token}`;
         }
+
+        // Agregar sede activa si existe
+        const activeBranchStr = localStorage.getItem('activeBranch');
+        if (activeBranchStr) {
+            try {
+                const branch = JSON.parse(activeBranchStr);
+                if (branch?.id) {
+                    config.headers['x-branch-id'] = branch.id;
+                }
+            } catch (e) {
+                console.error('Error parsing activeBranch from localStorage', e);
+            }
+        }
+
         return config;
     },
     (error) => {

@@ -83,7 +83,8 @@ export const AuthProvider = ({ children }) => {
             setSessionExpired(false);
             return { 
                 success: true, 
-                hasMultipleBranches: (userData.availableBranches?.length || 0) > 1 
+                hasMultipleBranches: (userData.availableBranches?.length || 0) > 1,
+                isAdmin: userData.role === 'ADMIN' || userData.profile === 'ADMINISTRADOR'
             };
         } catch (error) {
             return {

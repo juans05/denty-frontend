@@ -82,7 +82,9 @@ const ProtectedRoute = ({ children, skipBranchCheck = false }) => {
   if (!user) return <Navigate to="/login" replace />;
   if (user.needsSetup) return <Navigate to="/setup" replace />;
   
-  if (!activeBranch && !skipBranchCheck) {
+  const isAdmin = user?.role === 'ADMIN' || user?.profile === 'ADMINISTRADOR';
+  
+  if (!activeBranch && !skipBranchCheck && !isAdmin) {
     return <Navigate to="/select-branch" replace />;
   }
 

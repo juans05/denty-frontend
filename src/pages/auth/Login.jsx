@@ -28,7 +28,7 @@ const Login = () => {
         const result = await login(email, password);
 
         if (result.success) {
-            if (result.hasMultipleBranches) {
+            if (result.hasMultipleBranches && !result.isAdmin) {
                 navigate('/select-branch');
             } else {
                 navigate('/dashboard');

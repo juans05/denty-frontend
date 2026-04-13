@@ -9,6 +9,7 @@ const BranchSwitcher = () => {
     const dropdownRef = useRef(null);
 
     const availableBranches = user?.availableBranches || [];
+    const isAdmin = user?.role === 'ADMIN' || user?.profile === 'ADMINISTRADOR';
 
     useEffect(() => {
         const handleClickOutside = (event) => {
@@ -34,7 +35,7 @@ const BranchSwitcher = () => {
                 <div className="text-left hidden md:block">
                     <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Sede Activa</p>
                     <p className="text-xs font-black text-slate-800 uppercase tracking-tight truncate max-w-[150px]">
-                        {activeBranch?.name || 'Seleccionar...'}
+                        {activeBranch?.name || (isAdmin ? 'Vista Global' : 'Seleccionar...')}
                     </p>
                 </div>
                 <ChevronDown size={14} className={`text-slate-400 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
@@ -52,6 +53,39 @@ const BranchSwitcher = () => {
                             <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Cambiar de Sede</p>
                         </div>
                         <div className="max-h-[300px] overflow-y-auto space-y-1 pr-1">
+                            {isAdmin && (
+                                <button
+                                    onClick={() => {
+                                        switchBranch(null);
+                                        setIsOpen(false);
+                                    }}
+                                    className={`w-full flex items-center justify-between p-3 rounded-xl transition-all mb-2 ${
+                                        !activeBranch 
+                                        ? 'bg-indigo-50 border border-indigo-100' 
+                                        : 'hover:bg-slate-50 border border-transparent'
+                                    }`}
+                                >
+                                    <div className="flex items-center gap-3">
+                                        <div className={`h-8 w-8 rounded-lg flex items-center justify-center ${
+                                            !activeBranch ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-400'
+                                        }`}>
+                                            <Globe size={16} />
+                                        </div>
+                                        <div className="text-left">
+                                            <p className={`text-xs font-black uppercase tracking-tight ${
+                                                !activeBranch ? 'text-indigo-600' : 'text-slate-700'
+                                            }`}>
+                                                Vista Global
+                                            </p>
+                                            <p className="text-[10px] text-slate-400 font-medium">Toda la clínica</p>
+                                        </div>
+                                    </div>
+                                    {!activeBranch && (
+                                        <Check size={14} className="text-indigo-600" />
+                                    )}
+                                </button>
+                            )}
+
                             {availableBranches.map((branch) => (
                                 <button
                                     key={branch.id}
